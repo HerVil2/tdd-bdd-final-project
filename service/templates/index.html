@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Product Catalog Administration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Opcional: Bootstrap solo para estilos; no es requerido por los tests -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    />
+    <style>
+      body {
+        padding: 1.5rem;
+      }
+      .form-label {
+        font-weight: 600;
+      }
+      #flash_message {
+        min-height: 1.8rem;
+      }
+      table td,
+      table th {
+        vertical-align: middle;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Product Catalog Administration</h2>
+
+    <div class="my-2">Status: <span id="flash_message"></span></div>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-2 align-items-center mb-2">
+          <div class="col-2">
+            <label for="product_id" class="form-label">Product ID:</label>
+          </div>
+          <div class="col-8">
+            <input
+              id="product_id"
+              class="form-control"
+              placeholder="Enter ID of Product"
+            />
+          </div>
+          <div class="col-2 text-end">
+            <button id="retrieve-btn" class="btn btn-primary">Retrieve</button>
+            <button id="delete-btn" class="btn btn-danger">Delete</button>
+          </div>
+        </div>
+
+        <div class="row g-2 mb-2">
+          <div class="col-2">
+            <label for="name" class="form-label">Name:</label>
+          </div>
+          <div class="col-10">
+            <input
+              id="name"
+              class="form-control"
+              placeholder="Enter name for Product"
+            />
+          </div>
+        </div>
+
+        <div class="row g-2 mb-2">
+          <div class="col-2">
+            <label for="description" class="form-label">Description:</label>
+          </div>
+          <div class="col-10">
+            <input
+              id="description"
+              class="form-control"
+              placeholder="Enter description for Product"
+            />
+          </div>
+        </div>
+
+        <div class="row g-2 mb-2">
+          <div class="col-2">
+            <label for="available" class="form-label">Available:</label>
+          </div>
+          <div class="col-10">
+            <select id="available" class="form-select">
+              <option>True</option>
+              <option>False</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row g-2 mb-2">
+          <div class="col-2">
+            <label for="category" class="form-label">Category:</label>
+          </div>
+          <div class="col-10">
+            <select id="category" class="form-select">
+              <option>Unknown</option>
+              <option>Cloths</option>
+              <option>Food</option>
+              <option>Housewares</option>
+              <option>Automotive</option>
+              <option>Tools</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-2">
+            <label for="price" class="form-label">Price:</label>
+          </div>
+          <div class="col-10">
+            <input
+              id="price"
+              class="form-control"
+              placeholder="Enter price for Product"
+            />
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button id="search-btn" class="btn btn-info">Search</button>
+          <button id="clear-btn" class="btn btn-secondary">Clear</button>
+          <button id="create-btn" class="btn btn-success">Create</button>
+          <button id="update-btn" class="btn btn-warning">Update</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Available</th>
+            <th>Category</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody id="search_results"></tbody>
+      </table>
+    </div>
+
+    <script>
+      const flash = (msg) => {
+        document.getElementById("flash_message").innerText = msg;
+      };
+
+      const getForm = () => {
+        const name = document.getElementById("name").value.trim();
+        const description = document.getElementById("description").value.trim();
+        const price = document.getElementById("price").value.trim();
+        const availableText = document.getElementById("available").value;
+        const categoryText = document.getElementById("category").value;
+
+        return {
+          name,
+          description,
+          price, // el servicio espera string convertible a Decimal
+          available: availableText === "True", // bool
+          // el backend espera los enums en MAYÚSCULAS (CLOTHS, FOOD, ...)
+          category: (categoryText || "Unknown").toUpperCase(),
+        };
+      };
+
+      const fillForm = (p) => {
+        document.getElementById("product_id").value = p.id ?? "";
+        document.getElementById("name").value = p.name ?? "";
+        document.getElementById("description").value = p.description ?? "";
+        document.getElementById("price").value = (p.price ?? "").toString();
+        document.getElementById("available").value = p.available
+          ? "True"
+          : "False";
+        // llega como string del enum (e.g., 'FOOD') -> mostramos capitalizado
+        const catText = (p.category || "UNKNOWN").toString().toLowerCase();
+        const pretty = catText.charAt(0).toUpperCase() + catText.slice(1);
+        document.getElementById("category").value = pretty;
+      };
+
+      const clearForm = () => {
+        document.getElementById("product_id").value = "";
+        document.getElementById("name").value = "";
+        document.getElementById("description").value = "";
+        document.getElementById("price").value = "";
+        document.getElementById("available").value = "True";
+        document.getElementById("category").value = "Unknown";
+        document.getElementById("search_results").innerHTML = "";
+        flash("");
+      };
+
+      const rowHtml = (p) => `
+    <tr>
+      <td>${p.id}</td>
+      <td>${p.name}</td>
+      <td>${p.description}</td>
+      <td>${p.available ? "True" : "False"}</td>
+      <td>${(p.category || "")
+        .toString()
+        .toLowerCase()
+        .replace(/^./, (c) => c.toUpperCase())}</td>
+      <td>${p.price}</td>
+    </tr>`;
+
+      // ------- API calls -------
+      const createProduct = async () => {
+        try {
+          const resp = await fetch("/products", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(getForm()),
+          });
+          if (resp.status === 201) {
+            const data = await resp.json();
+            fillForm(data);
+            flash("Success");
+          } else {
+            const e = await resp.json().catch(() => ({}));
+            flash(e.error || "Error");
+          }
+        } catch (e) {
+          flash("Error");
+        }
+      };
+
+      const retrieveProduct = async () => {
+        const id = document.getElementById("product_id").value.trim();
+        if (!id) {
+          flash("Error");
+          return;
+        }
+        const resp = await fetch(`/products/${id}`);
+        if (resp.status === 200) {
+          const data = await resp.json();
+          fillForm(data);
+          flash("Success");
+        } else {
+          flash("Not Found");
+        }
+      };
+
+      const updateProduct = async () => {
+        const id = document.getElementById("product_id").value.trim();
+        if (!id) {
+          flash("Error");
+          return;
+        }
+        const resp = await fetch(`/products/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(getForm()),
+        });
+        if (resp.status === 200) {
+          const data = await resp.json();
+          fillForm(data);
+          flash("Success");
+        } else {
+          const e = await resp.json().catch(() => ({}));
+          flash(e.error || "Error");
+        }
+      };
+
+      const deleteProduct = async () => {
+        const id = document.getElementById("product_id").value.trim();
+        if (!id) {
+          flash("Error");
+          return;
+        }
+        const resp = await fetch(`/products/${id}`, { method: "DELETE" });
+        if (resp.status === 204) {
+          clearForm();
+          flash("Product has been Deleted!");
+        } else {
+          flash("Error");
+        }
+      };
+
+      const searchProducts = async () => {
+        // construye query con filtros opcionales
+        const params = new URLSearchParams();
+        const name = document.getElementById("name").value.trim();
+        const categoryText = document.getElementById("category").value;
+        const availableText = document.getElementById("available").value;
+
+        if (name) params.set("name", name);
+        if (categoryText && categoryText !== "Unknown")
+          params.set("category", categoryText);
+        if (availableText) params.set("available", availableText);
+
+        const resp = await fetch(`/products?${params.toString()}`);
+        if (resp.status === 200) {
+          const data = await resp.json();
+          // puebla grid
+          const tbody = document.getElementById("search_results");
+          tbody.innerHTML = data.map(rowHtml).join("");
+          // por conveniencia, rellenamos el formulario con el primer resultado
+          if (data.length) fillForm(data[0]);
+          flash("Success");
+        } else {
+          flash("Error");
+        }
+      };
+
+      // ------- wire up buttons -------
+      document
+        .getElementById("create-btn")
+        .addEventListener("click", createProduct);
+      document
+        .getElementById("retrieve-btn")
+        .addEventListener("click", retrieveProduct);
+      document
+        .getElementById("update-btn")
+        .addEventListener("click", updateProduct);
+      document
+        .getElementById("delete-btn")
+        .addEventListener("click", deleteProduct);
+      document
+        .getElementById("search-btn")
+        .addEventListener("click", searchProducts);
+      document.getElementById("clear-btn").addEventListener("click", clearForm);
+    </script>
+  </body>
+</html>
