@@ -1,4 +1,3 @@
-# features/steps/load_steps.py
 import os
 import requests
 from behave import given

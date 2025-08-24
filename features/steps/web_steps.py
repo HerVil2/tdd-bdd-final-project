@@ -1,4 +1,3 @@
-# features/steps/web_steps.py
 import os
 from behave import when, then
 from selenium.webdriver.common.by import By

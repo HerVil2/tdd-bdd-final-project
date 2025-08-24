@@ -4,7 +4,6 @@
     <meta charset="utf-8" />
     <title>Product Catalog Administration</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Opcional: Bootstrap solo para estilos; no es requerido por los tests -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
@@ -156,9 +155,8 @@
         return {
           name,
           description,
-          price, // el servicio espera string convertible a Decimal
+          price,
           available: availableText === "True", // bool
-          // el backend espera los enums en MAYÚSCULAS (CLOTHS, FOOD, ...)
           category: (categoryText || "Unknown").toUpperCase(),
         };
       };
@@ -171,7 +169,6 @@
         document.getElementById("available").value = p.available
           ? "True"
           : "False";
-        // llega como string del enum (e.g., 'FOOD') -> mostramos capitalizado
         const catText = (p.category || "UNKNOWN").toString().toLowerCase();
         const pretty = catText.charAt(0).toUpperCase() + catText.slice(1);
         document.getElementById("category").value = pretty;
@@ -292,7 +289,6 @@
           // puebla grid
           const tbody = document.getElementById("search_results");
           tbody.innerHTML = data.map(rowHtml).join("");
-          // por conveniencia, rellenamos el formulario con el primer resultado
           if (data.length) fillForm(data[0]);
           flash("Success");
         } else {

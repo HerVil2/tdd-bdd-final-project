@@ -1,4 +1,3 @@
-# tests/test_routes.py
 from service.app import create_app
 from service.common import status
 

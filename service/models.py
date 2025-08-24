@@ -1,4 +1,3 @@
-# service/models.py
 import logging
 from enum import Enum
 from decimal import Decimal
@@ -22,7 +21,7 @@ class Category(Enum):
     """Enumeración de categorías válidas de productos"""
 
     UNKNOWN = 0
-    CLOTHS = 1  # Ojo: el curso lo llama CLOTHS, aunque debería ser CLOTHES
+    CLOTHS = 1  
     FOOD = 2
     HOUSEWARES = 3
     AUTOMOTIVE = 4

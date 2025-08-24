@@ -1,11 +1,8 @@
-# service/routes.py
 from flask import Blueprint, request, jsonify, render_template
 from service.models import Product, Category, db, DataValidationError
 from service.common import status
 
-# Declaramos el static_folder para poder servir index.html con bp.send_static_file
-# bp = Blueprint("api", __name__, static_folder="static")
-bp = Blueprint("api", __name__)  # ya no necesitamos static_folder aquí
+bp = Blueprint("api", __name__)  
 
 
 @bp.post("/products")
@@ -39,7 +36,7 @@ def update_product(pid: int):
         prod.deserialize(request.get_json() or {})
     except DataValidationError as e:
         return jsonify({"error": str(e)}), status.HTTP_400_BAD_REQUEST
-    prod.id = pid  # asegura consistencia del id
+    prod.id = pid  
     prod.update()
     return jsonify(prod.serialize()), status.HTTP_200_OK
 
@@ -78,15 +75,12 @@ def list_products():
 
     return jsonify([p.serialize() for p in q.all()]), status.HTTP_200_OK
 
-# Helper para tests/BDD: borrar todo
 @bp.delete("/admin/reset")
 def admin_reset():
     db.session.query(Product).delete()
     db.session.commit()
     return "", status.HTTP_200_OK
 
-# Home de la UI
 @bp.get("/")
 def index():
-    # usa /templates/index.html (raíz del proyecto)
     return render_template("index.html")

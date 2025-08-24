@@ -1,4 +1,3 @@
-# service/app.py
 from flask import Flask
 from service.models import Product, db
 from service.routes import bp as api
@@ -15,9 +14,8 @@ def create_app(testing: bool = False) -> Flask:
     )
 
     Product.init_db(app)
-    app.register_blueprint(api)  # <-- registra las rutas REST
+    app.register_blueprint(api) 
     return app
 
 
-# Para poder hacer `flask run` si lo deseas
 app = create_app()

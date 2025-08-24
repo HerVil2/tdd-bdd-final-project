@@ -1,4 +1,3 @@
-# tests/test_models.py
 import unittest
 from decimal import Decimal
 
@@ -175,8 +174,6 @@ class TestProductModel(unittest.TestCase):
                     "category": "NOPE",
                 }
             )
-
-    # Añade a tests/test_models.py
 
     def test_update_without_id_raises(self):
         """It should raise when updating without ID"""
