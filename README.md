@@ -1,3 +1,8 @@
+# add environment
+
+conda env create flask_env
+conda activate flask_env
+
 # add readme
 
 set FLASK_APP=service.app
@@ -15,3 +20,7 @@ honcho start
 # terminal
 
 behave
+
+# install
+
+pip install -r requirements.txt
